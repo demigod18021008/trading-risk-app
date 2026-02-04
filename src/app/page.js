@@ -1,71 +1,77 @@
 "use client";
-
 import { useState } from "react";
 
 export default function Home() {
   const [balance, setBalance] = useState(1000);
-  const [pnl, setPnl] = useState(0);
+  const [risk, setRisk] = useState(1);
+  const [entry, setEntry] = useState("");
+  const [stop, setStop] = useState("");
+  const [result, setResult] = useState(null);
 
-  function simulateTrade() {
-    const change = Math.floor(Math.random() * 200 - 100);
-    setPnl(pnl + change);
-    setBalance(balance + change);
+  function calculateTrade() {
+    const riskAmount = (balance * risk) / 100;
+    const stopDistance = Math.abs(entry - stop);
+    if (!stopDistance) return;
+
+    const positionSize = (riskAmount / stopDistance).toFixed(2);
+    setResult({ riskAmount, positionSize });
   }
 
   return (
-    <main style={styles.container}>
-      <h1 style={styles.title}>📈 Trading Dashboard</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-center">Trading Risk Manager</h1>
 
-      <div style={styles.card}>
-        <p>Balance</p>
-        <h2>${balance}</h2>
+      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
+        <label>Account Balance ($)</label>
+        <input
+          type="number"
+          value={balance}
+          onChange={(e) => setBalance(+e.target.value)}
+          className="w-full p-2 rounded bg-slate-900"
+        />
       </div>
 
-      <div style={styles.card}>
-        <p>PnL</p>
-        <h2 style={{ color: pnl >= 0 ? "green" : "red" }}>
-          {pnl >= 0 ? "+" : ""}{pnl}
-        </h2>
+      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
+        <label>Risk per Trade (%)</label>
+        <input
+          type="number"
+          value={risk}
+          onChange={(e) => setRisk(+e.target.value)}
+          className="w-full p-2 rounded bg-slate-900"
+        />
       </div>
 
-      <button style={styles.button} onClick={simulateTrade}>
-        Simulate Trade
+      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
+        <label>Entry Price</label>
+        <input
+          type="number"
+          value={entry}
+          onChange={(e) => setEntry(+e.target.value)}
+          className="w-full p-2 rounded bg-slate-900"
+        />
+
+        <label>Stop Loss</label>
+        <input
+          type="number"
+          value={stop}
+          onChange={(e) => setStop(+e.target.value)}
+          className="w-full p-2 rounded bg-slate-900"
+        />
+      </div>
+
+      <button
+        onClick={calculateTrade}
+        className="w-full bg-blue-600 p-3 rounded-xl font-bold"
+      >
+        Calculate Trade
       </button>
-    </main>
+
+      {result && (
+        <div className="bg-slate-900 p-4 rounded-xl space-y-1">
+          <p>Risk Amount: <span className="text-red-400">${result.riskAmount}</span></p>
+          <p>Position Size: <span className="text-green-400">{result.positionSize}</span></p>
+        </div>
+      )}
+    </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "#0f172a",
-    color: "#fff",
-    padding: "40px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: "28px",
-    marginBottom: "20px",
-  },
-  card: {
-    background: "#020617",
-    padding: "20px",
-    width: "250px",
-    borderRadius: "10px",
-    textAlign: "center",
-  },
-  button: {
-    marginTop: "20px",
-    padding: "12px 20px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#22c55e",
-    color: "#000",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
-};
