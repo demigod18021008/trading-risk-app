@@ -1,77 +1,64 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [balance, setBalance] = useState(1000);
-  const [risk, setRisk] = useState(1);
-  const [entry, setEntry] = useState("");
-  const [stop, setStop] = useState("");
-  const [result, setResult] = useState(null);
+  const [risk, setRisk] = useState(1); // %
+  const [result, setResult] = useState("win"); // win | loss
+  const [pnl, setPnl] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  function calculateTrade() {
-    const riskAmount = (balance * risk) / 100;
-    const stopDistance = Math.abs(entry - stop);
-    if (!stopDistance) return;
+  const simulateTrade = () => {
+    setLoading(true);
 
-    const positionSize = (riskAmount / stopDistance).toFixed(2);
-    setResult({ riskAmount, positionSize });
-  }
+    setTimeout(() => {
+      const riskAmount = (balance * risk) / 100;
+      const tradePnl = result === "win" ? riskAmount : -riskAmount;
+
+      setBalance(prev => prev + tradePnl);
+      setPnl(tradePnl);
+      setLoading(false);
+    }, 800);
+  };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-center">Trading Risk Manager</h1>
+    <main className="container">
+      <h1>📊 Trading Dashboard</h1>
 
-      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
-        <label>Account Balance ($)</label>
-        <input
-          type="number"
-          value={balance}
-          onChange={(e) => setBalance(+e.target.value)}
-          className="w-full p-2 rounded bg-slate-900"
-        />
+      <div className="card">
+        <p>Balance</p>
+        <h2>${balance.toFixed(2)}</h2>
       </div>
 
-      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
-        <label>Risk per Trade (%)</label>
-        <input
-          type="number"
-          value={risk}
-          onChange={(e) => setRisk(+e.target.value)}
-          className="w-full p-2 rounded bg-slate-900"
-        />
+      <div className={`card ${pnl >= 0 ? "green" : "red"}`}>
+        <p>PnL</p>
+        <h2>{pnl >= 0 ? "+" : ""}{pnl.toFixed(2)}</h2>
       </div>
 
-      <div className="bg-slate-800 p-4 rounded-xl space-y-2">
-        <label>Entry Price</label>
-        <input
-          type="number"
-          value={entry}
-          onChange={(e) => setEntry(+e.target.value)}
-          className="w-full p-2 rounded bg-slate-900"
-        />
+      <div className="controls">
+        <label>
+          Risk %
+          <input
+            type="number"
+            value={risk}
+            min="0.1"
+            step="0.1"
+            onChange={e => setRisk(Number(e.target.value))}
+          />
+        </label>
 
-        <label>Stop Loss</label>
-        <input
-          type="number"
-          value={stop}
-          onChange={(e) => setStop(+e.target.value)}
-          className="w-full p-2 rounded bg-slate-900"
-        />
+        <label>
+          Result
+          <select value={result} onChange={e => setResult(e.target.value)}>
+            <option value="win">Win</option>
+            <option value="loss">Loss</option>
+          </select>
+        </label>
       </div>
 
-      <button
-        onClick={calculateTrade}
-        className="w-full bg-blue-600 p-3 rounded-xl font-bold"
-      >
-        Calculate Trade
+      <button onClick={simulateTrade} disabled={loading}>
+        {loading ? "Processing..." : "Simulate Trade"}
       </button>
-
-      {result && (
-        <div className="bg-slate-900 p-4 rounded-xl space-y-1">
-          <p>Risk Amount: <span className="text-red-400">${result.riskAmount}</span></p>
-          <p>Position Size: <span className="text-green-400">{result.positionSize}</span></p>
-        </div>
-      )}
-    </div>
+    </main>
   );
 }
