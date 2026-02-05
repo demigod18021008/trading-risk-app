@@ -7,17 +7,28 @@ export default function Home() {
   const [result, setResult] = useState("win"); // win | loss
   const [pnl, setPnl] = useState(0);
   const [loading, setLoading] = useState(false);
+const [trades, setTrades] = useState([]);
 
   const simulateTrade = () => {
     setLoading(true);
 
     setTimeout(() => {
-      const riskAmount = (balance * risk) / 100;
-      const tradePnl = result === "win" ? riskAmount : -riskAmount;
+const riskAmount = (balance * risk) / 100;
+const tradePnl = result === "win" ? riskAmount : -riskAmount;
 
-      setBalance(prev => prev + tradePnl);
-      setPnl(tradePnl);
-      setLoading(false);
+const newTrade = {
+  id: Date.now(),
+  result,
+  risk,
+  pnl: tradePnl,
+  balanceAfter: balance + tradePnl,
+  time: new Date().toLocaleTimeString()
+};
+
+setTrades(prev => [newTrade, ...prev]);
+setBalance(prev => prev + tradePnl);
+setPnl(tradePnl);
+setLoading(false);
     }, 800);
   };
 
@@ -59,6 +70,26 @@ export default function Home() {
       <button onClick={simulateTrade} disabled={loading}>
         {loading ? "Processing..." : "Simulate Trade"}
       </button>
+      <div className="trade-history">
+  <h3>Trade History</h3>
+
+  {trades.length === 0 ? (
+    <p className="muted">No trades yet</p>
+  ) : (
+    trades.map((trade, index) => (
+      <div key={index} className="trade-card">
+        <span>#{index + 1}</span>
+        <span>{trade.result.toUpperCase()}</span>
+        <span
+          className={trade.pnl > 0 ? "pnl-win" : "pnl-loss"}
+        >
+          {trade.pnl > 0 ? "+" : ""}
+          {trade.pnl}
+        </span>
+      </div>
+    ))
+  )}
+</div>
     </main>
   );
 }
